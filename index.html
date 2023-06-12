@@ -1,0 +1,56 @@
+<!doctype html>
+<html>
+    <head>
+        <title>Simple OBS Timer</title>
+        <meta charset="utf-8" lang="en" />
+        <meta name="application-name" content="Simple OBS Timer" />
+        <meta name="description" content="a simple OBS (browser source) timer." />
+        <meta name="author" content="IAmSeraph" />
+        <meta name="keywords" content="OBS, Open Broadcaster Software, Browser Source, Timer" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body>
+        <input id="AlertTime" type="number" placeholder="Alert Time in Seconds" />
+        <button id="StartTimer"type="button"/>Start Timer</button></br></br>
+        <h2 id="TimerText"></h2>
+    </body>
+    <script type="application/javascript">
+        window.onload = function() {
+            var urlParams;
+            (function () {
+                var matcher,
+                    pattern = /\+/g,
+                    search = /([^&=]+)=?([^&]*)/g,
+                    decode = function (str) { return decodeURIComponent(str.replace(pattern, " ")); },
+                    query = window.location.search.substring(1);
+                    urlParams = {};
+                while (matcher = search.exec(query))
+                    urlParams[decode(matcher[1])] = decode(matcher[2]);
+            })();
+            
+            var AlertTime = document.getElementById("AlertTime");
+            var StartTimer = document.getElementById("StartTimer");
+            var TimerText = document.getElementById("TimerText");
+            var TimerID = 0;
+            var Time = 0;
+
+            if(urlParams["style"]) TimerText.setAttribute("style", urlParams["style"]);
+            if(urlParams["bodyStyle"]) document.body.setAttribute("style", urlParams["bodyStyle"]);
+            if(urlParams["alertTime"]) AlertTime.value = urlParams["alertTime"];
+
+            TimerText.textContent = "Time: 0 seconds";
+            StartTimer.onclick = function() {
+                TimerID = setInterval(function() { 
+                    Time++;
+                    TimerText.textContent = "Time: " + Time + " seconds";
+                    if (Time > AlertTime.value) {
+                        clearInterval(TimerID);
+                        alert(AlertTime.value + " seconds have passed!");
+                        TimerText.textContent = "Time: 0 seconds";
+                        Time = 0;
+                    }
+                }, 1000);
+            };
+        };
+    </script>
+</html>
