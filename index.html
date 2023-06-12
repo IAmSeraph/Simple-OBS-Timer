@@ -34,6 +34,7 @@
             var TimerText = document.getElementById("TimerText");
             var TimerID = 0;
             var Time = 0;
+            var TimerRunning = false;
 
             if(urlParams["style"]) TimerText.setAttribute("style", urlParams["style"]);
             if(urlParams["bodyStyle"]) document.body.setAttribute("style", urlParams["bodyStyle"]);
@@ -41,6 +42,8 @@
 
             TimerText.textContent = "Time: 0 seconds";
             StartTimer.onclick = function() {
+                if (TimerRunning) return;
+                TimerRunning = true;
                 TimerID = setInterval(function() { 
                     Time++;
                     TimerText.textContent = "Time: " + Time + " seconds";
@@ -49,6 +52,7 @@
                         alert(AlertTime.value + " seconds have passed!");
                         TimerText.textContent = "Time: 0 seconds";
                         Time = 0;
+                        TimerRunning = false;
                     }
                 }, 1000);
             };
