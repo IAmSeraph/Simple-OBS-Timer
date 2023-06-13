@@ -11,51 +11,222 @@
         <link href="https://pagecdn.io/lib/easyfonts/fonts.css" rel="stylesheet" />
     </head>
     <body>
-        <input id="AlertTime" type="number" placeholder="Alert Time in Seconds" />
-        <button id="StartTimer"type="button"/>Start Timer</button></br></br>
-        <h2 id="TimerText"></h2>
+        <h2 id="TimerText"></h2></br></br>
+        <div id="AlertsPanel">
+            <input id="AlertTime" type="number" placeholder="Alert Time in Seconds" />
+            <button id="AddAlert" onclick="AddAlert();">+</button></br>
+        </div></br>
+        <button id="TimerToggle" type="button" onclick="StartTimer();"/>Start Timer</button>
+        <button id="ClearAlerts" type="button" onclick="ClearAlerts();"/>Clear Alerts</button>
+        <button id="CopyUrlToClipboard" type="button" onclick="CopyUrlToClipboard()"/>Copy URL</button></br></br>
+        <input id="AlertSoundGain" type="range" min="0" max="100" />
+        <audio id="AlertSound" src="data/alert.mp3" preload="auto"></audio></br></br>
+        <ul id="AlertList">
+        </ul>
     </body>
     <script type="application/javascript">
-        window.onload = function() {
-            var urlParams;
-            (function () {
-                var matcher,
-                    pattern = /\+/g,
-                    search = /([^&=]+)=?([^&]*)/g,
-                    decode = function (str) { return decodeURIComponent(str.replace(pattern, " ")); },
-                    query = window.location.search.substring(1);
-                    urlParams = {};
-                while (matcher = search.exec(query))
-                    urlParams[decode(matcher[1])] = decode(matcher[2]);
-            })();
-            
-            var AlertTime = document.getElementById("AlertTime");
-            var StartTimer = document.getElementById("StartTimer");
-            var TimerText = document.getElementById("TimerText");
-            var TimerID = 0;
-            var Time = 0;
-            var TimerRunning = false;
+        var AlertTimeElement;
+        var AlertListElement;
+        var AlertAddButton;
+        var AlertList = [];
+        var AlertSoundGain;
+        var AlertSound;
+        var TimerToggleButton;
+        var TimerTextElement;
+        var TimerRunning;
+        var ElapsedTime;
 
-            if(urlParams["style"]) TimerText.setAttribute("style", urlParams["style"]);
-            if(urlParams["bodyStyle"]) document.body.setAttribute("style", urlParams["bodyStyle"]);
-            if(urlParams["alertTime"]) AlertTime.value = urlParams["alertTime"];
+        class Alert {
+            constructor(time, notify) {
+                this.Time = time;
+                this.Notify = notify;
+            }
 
-            TimerText.textContent = "Time: 0 seconds";
-            StartTimer.onclick = function() {
-                if (TimerRunning) return;
-                TimerRunning = true;
-                TimerID = setInterval(function() { 
-                    Time++;
-                    TimerText.textContent = "Time: " + Time + " seconds";
-                    if (Time > AlertTime.value) {
-                        clearInterval(TimerID);
-                        alert(AlertTime.value + " seconds have passed!");
-                        TimerText.textContent = "Time: 0 seconds";
-                        Time = 0;
-                        TimerRunning = false;
+            ToggleNotification() {
+                this.Notify = !this.Notify;
+            }
+        };
+
+        function CreateAlert(alertTime, notify) {
+            AlertList.push(new Alert(alertTime, true));
+            var alertElement = document.createElement("li");
+            alertElement.id = "Alert_" + AlertList.length;
+            var span = document.createElement("span");
+            var text = document.createElement("a");
+            var removeBtn = document.createElement("button");
+            var soundBtn = document.createElement("button");
+            text.textContent = "" + alertTime;
+            removeBtn.textContent = "-";
+            removeBtn.onclick = function() { RemoveAlert(alertElement); };
+            if (notify)
+                soundBtn.textContent = "🔊";
+            else
+                soundBtn.textContent = "🔇";
+            soundBtn.onclick = function() { ToggleNotification(alertElement); };
+            span.appendChild(removeBtn);
+            span.appendChild(document.createTextNode(" "));
+            span.appendChild(soundBtn);
+            span.appendChild(document.createTextNode(" "));
+            span.appendChild(text);
+            alertElement.appendChild(span);
+            AlertListElement.appendChild(alertElement);
+        }
+
+        function AddAlert() {
+            CreateAlert(AlertTimeElement.value, true);
+            AlertTimeElement.value = 0;
+        }
+
+        function GetAlert(index) {
+            return AlertList[index];
+        }
+
+        function GetAlertElement(index) {
+            return document.getElementById("Alert_" + (index + 1));
+        }
+
+        function GetAlertByTime(time) {
+            AlertList.forEach(alert => {
+                if (alert.Time === time)
+                    return time;
+            });
+            return null;
+        }
+
+        function GetAlertID(alert) {
+            for(var i = 0; i < AlertList.length; i++) {
+                if (alert === AlertList[i])
+                    return i;
+            }
+            return -1;
+        }
+
+        function RemoveAlert(element) {
+            var alertID = parseInt(element.id.replace("Alert_", "")) - 1;
+            var alerts = [];
+            for(var i = 0; i < AlertList.length; i++) {
+                if (i === alertID) continue;
+                alerts[i] = AlertList[i];
+            }
+            AlertList = alerts;
+            AlertListElement.removeChild(element);
+        }
+
+        function ClearAlerts() {
+            for (var alertID = 0; alertID < AlertList.length; alertID++) {
+                delete AlertList[alertID];
+                console.log(GetAlertElement(alertID));
+                AlertListElement.removeChild(GetAlertElement(alertID));
+            }
+        }
+
+        function ToggleNotification(element) {
+            var alertID = parseInt(element.id.replace("Alert_", "")) - 1;
+            AlertList[alertID].ToggleNotification();
+            if (AlertList[alertID].Notify)
+                element.childNodes[0].childNodes[2].textContent = "🔊";
+            else
+                element.childNodes[0].childNodes[2].textContent = "🔇";
+        }
+
+        function Notify(alertv) {
+            if (alertv.Notify) {
+                AlertSound.volume = AlertSoundGain.value * 0.01;
+                AlertSound.play();
+            }
+            new Notification("" + alertv.Time + " seconds have passed!");
+        }
+
+        function StartTimer() {
+            if (TimerRunning) return;
+            TimerRunning = true;
+            TimerID = setInterval(function() { UpdateTimer(); }, 1000);
+            TimerToggleButton.textContent = "Stop Timer";
+            TimerToggleButton.onclick = function() { StopTimer(); };
+        }
+
+        function StopTimer() {
+            if (!TimerRunning) return;
+            TimerRunning = false;
+            clearInterval(TimerID);
+            TimerToggleButton.textContent = "Start Timer";
+            TimerToggleButton.onclick = function() { StartTimer(); };
+            TimerTextElement.textContent = "Time: 0 seconds";
+            ElapsedTime = 0;
+        }
+
+        function UpdateTimer() {
+            if (!TimerRunning) return;
+            ElapsedTime++;
+            TimerText.textContent = "Time: " + ElapsedTime + " seconds";
+            if (AlertList.length !== 0) {
+                AlertList.forEach(alert => {
+                    if (alert.Time <= ElapsedTime) {
+                        Notify(alert);
+                        RemoveAlert(GetAlertElement(GetAlertID(alert)));
                     }
-                }, 1000);
-            };
+                });
+            }
+        }
+
+        function CopyUrlToClipboard() {
+            var url = window.location.href.replace(window.location.search.substring(0), "");
+            if (AlertList.length !== 0 && UrlParams.length !== 0) {
+                url += "?alerts=";
+                for (var i = 0; i < AlertList.length; i++) {
+                    if (i !== 0)
+                        url += ";";
+                    url += AlertList[i].Time + "," + AlertList[i].Notify;
+                }
+            }
+            if (UrlParams["style"])
+                url += (url.includes("?") ? "&" : "?") + "style=" + UrlParams["style"];
+            if (UrlParams["bodyStyle"])
+                url += (url.includes("?") ? "&" : "?") + "bodyStyle=" + UrlParams["bodyStyle"];
+            navigator.clipboard.writeText(url);
+        }
+
+        function parseBool(str) {
+            return str === "true";
+        }
+
+        window.onload = function() {
+            var matcher,
+                pattern = /\+/g,
+                search = /([^&=]+)=?([^&]*)/g,
+                decode = function (str) { return decodeURIComponent(str.replace(pattern, " ")); },
+                query = window.location.search.substring(1);
+                UrlParams = {};
+            while (matcher = search.exec(query))
+                UrlParams[decode(matcher[1])] = decode(matcher[2]);
+
+            AlertTimeElement = document.getElementById("AlertTime");
+            AlertListElement = document.getElementById("AlertList");
+            AlertSoundGain = document.getElementById("AlertSoundGain");
+            AlertSound = document.getElementById("AlertSound");
+            AlertSoundGain.value = 25;
+            TimerTextElement = document.getElementById("TimerText");
+            TimerToggleButton = document.getElementById("TimerToggle");
+            TimerToggleButton.textContent = "Start Timer";
+            TimerToggleButton.onclick = function() { StartTimer(); };
+            TimerTextElement.textContent = "Time: 0 seconds";
+            TimerID = 0;
+            TimerRunning = false;
+            ElapsedTime = 0;
+
+            if(UrlParams["style"]) TimerText.setAttribute("style", UrlParams["style"]);
+            if(UrlParams["bodyStyle"]) document.body.setAttribute("style", UrlParams["bodyStyle"]);
+            if(UrlParams["alerts"]) {
+                var alerts = UrlParams["alerts"].split(";");
+                alerts.forEach(alert => {
+                    if (alert.includes(",")) {
+                        var options = alert.split(",");
+                        CreateAlert(options[0], parseBool(options[1]));
+                    } else {
+                        CreateAlert(alert, true);
+                    }
+                });
+            }
         };
     </script>
 </html>
