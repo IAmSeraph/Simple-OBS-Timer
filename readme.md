@@ -6,16 +6,16 @@ A simple webpage to embed a custom timer in your video/stream.
 # Examples & Usage
 
   * Vanilla  
-    `https://rawcdn.githack.com/IAmSeraph/Simple-OBS-Timer/493f0d78a4c6e9070bd33fde9c5136665ce92f8a/index.html`
+    `https://rawcdn.githack.com/IAmSeraph/Simple-OBS-Timer/d2a908d08317827eca9bad43e975f06c62e122b4/index.html`
 
   * White text  
-    `https://rawcdn.githack.com/IAmSeraph/Simple-OBS-Timer/493f0d78a4c6e9070bd33fde9c5136665ce92f8a/index.html?style=font: bold 30px monospace; color: white;`
+    `https://rawcdn.githack.com/IAmSeraph/Simple-OBS-Timer/d2a908d08317827eca9bad43e975f06c62e122b4/index.html?style=font: bold 30px monospace; color: white;`
 
   * Rounded rectangle  
-    `https://rawcdn.githack.com/IAmSeraph/Simple-OBS-Timer/493f0d78a4c6e9070bd33fde9c5136665ce92f8a/index.html?style=font: bold 30px monospace; color: lightgray; display: inline-block; border-radius: 5px; padding: 2px 5px; background-color: rgba(0, 0, 0, 0.5);`
+    `https://rawcdn.githack.com/IAmSeraph/Simple-OBS-Timer/d2a908d08317827eca9bad43e975f06c62e122b4/index.html?style=font: bold 30px monospace; color: lightgray; display: inline-block; border-radius: 5px; padding: 2px 5px; background-color: rgba(0, 0, 0, 0.5);`
 
   * Preload Alerts
-    `https://rawcdn.githack.com/IAmSeraph/Simple-OBS-Timer/493f0d78a4c6e9070bd33fde9c5136665ce92f8a/index.html?alerts=300,false;1800,true`
+    `https://rawcdn.githack.com/IAmSeraph/Simple-OBS-Timer/d2a908d08317827eca9bad43e975f06c62e122b4/index.html?alerts=300,false;1800,true`
 
 
 # Parameters
