@@ -48,7 +48,7 @@
         };
 
         function CreateAlert(alertTime, notify) {
-            AlertList.push(new Alert(alertTime, true));
+            AlertList.push(new Alert(alertTime, notify));
             var alertElement = document.createElement("li");
             alertElement.id = "Alert_" + AlertList.length;
             var span = document.createElement("span");
