@@ -2,6 +2,10 @@
 
 A simple webpage to embed a custom timer in your video/stream.  
 
+# Other projects like this
+
+[Simple-OBS-Overlay](https://github.com/IAmSeraph/Simple-OBS-Overlay.git)
+[Simple-OBS-Clock](https://github.com/IAmSeraph/Simple-OBS-Clock.git)
 
 # Examples & Usage
 
